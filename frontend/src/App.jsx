@@ -1,33 +1,102 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
+import { useState,useEffect } from 'react'
 import './App.css'
+import {
+  createBrowserRouter,
+  RouterProvider,
+  Route,
+  Link,
+} from "react-router-dom";
+import Register from './components/Register'
+import Login from './components/Login';
+import Profile from './components/Profile';
+import Navbar from './components/Navbar';
+import Home from './components/Home';
+import Checkout from './components/Checkout';
 
 function App() {
-  const [count, setCount] = useState(0)
+
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [userName, setUserName] = useState('');
+  const [email, setEmail] = useState('');
+
+  useEffect(() => {
+    const savedUserName = localStorage.getItem('userName');
+    if (savedUserName) {
+      setUserName(savedUserName);
+      setIsLoggedIn(true);
+    }
+  }, []);
+
+  const handleLogin = (name, id,  userType, email) => {
+    setUserName(name);
+    setEmail(email)
+    setIsLoggedIn(true);
+    if(userType === 'ADMIN'){
+      setIsAdmin(true);
+    }
+    localStorage.setItem('userName', name); 
+    localStorage.setItem('email', email); 
+  };
+
+  const handleLogout = () => {
+    setUserName('');
+    setIsLoggedIn(false);
+    localStorage.removeItem('userName'); 
+    localStorage.removeItem('token'); 
+  };
+
+  const router = createBrowserRouter([
+    {
+      path: "/",
+      element: (
+        <>
+          <Navbar isLoggedIn={isLoggedIn} userName={userName} />
+          <Home isLoggedIn={isLoggedIn} email={email}/>
+        </>
+      ),
+    },
+    {
+      path: "/register",
+      element: (
+        <>
+        <Navbar isLoggedIn={isLoggedIn} userName={userName} />
+        <Register onLogin={handleLogin}/>
+        </>
+        
+      ),
+    },
+    {
+      path: "/login",
+      element: (
+        <>
+        <Navbar isLoggedIn={isLoggedIn} userName={userName} />
+        <Login onLogin={handleLogin}/>
+        </>
+      ),
+    },
+    {
+      path: '/profile',
+      element: (
+        <>
+          <Navbar isLoggedIn={isLoggedIn} userName={userName} />
+          <Profile email={email} onLogout={handleLogout}/>
+        </>
+      ),
+    },
+    {
+      path: '/checkout/:id',
+      element: (
+        <>
+          <Navbar isLoggedIn={isLoggedIn} userName={userName} />
+          <Checkout/>
+        </>
+      ),
+    },
+  ]);
 
   return (
     <>
-      <div>
-        <a href="https://vitejs.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
+        <RouterProvider router={router} />
     </>
   )
 }
